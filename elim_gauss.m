@@ -10,8 +10,9 @@ function[U] = elim_gauss(A)
     for k =1:n-1
         %Recorro filas
         for i=k+1:n
-            %Recorro columnas
-            for j=k:n
+            %Recorro columnas de derecha a izquierda para evitar problemas
+            %de sustiitución de valores
+            for j=n:-1:k
                U(i,j) = U(i,j)-(U(i,k)/U(k,k))*U(k,j);
             end 
         end
