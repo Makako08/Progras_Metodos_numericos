@@ -5,11 +5,11 @@ U=A;
 y = b;
 for k=1:n-1
     for i=k+1:n
-        factor = U(i,k) / U(k,k);
+        num = U(i,k) / U(k,k);
         for j=n:-1:k
-            U(i,j) = U(i,j) - factor * U(k,j);
+            U(i,j) = U(i,j) - num * U(k,j);
         end
-        y(i) = y(i) - factor * y(k); % Actualizar el vector b
+        y(i) = y(i) - num * y(k); % Actualizar el vector b
     end
 end
 end
