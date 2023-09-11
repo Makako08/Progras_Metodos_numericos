@@ -1,1 +1,0 @@
-function [sol] = sustatras(A,b)

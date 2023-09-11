@@ -1,52 +1,23 @@
-function[sol]=gauss_seidel(A,b)
-    
-    [n,m] = size(A);
-    
-    %Ciclo para iterar por toda la matriz
-    for k =1:n
-       suma = 0;
-        for j=k+1:n
-          suma = suma+A(k,j)*sol(j);
+function[sol, error, i] = gauss_seidel(A, b)
+    [n, m] = size(A);
+    sol = zeros(1, n);
+    it = input('Ingrese el número máximo de iteraciones: ');
+
+    for i = 2:it + 1
+        for k = 1:n
+            suma = 0;
+            
+            % Uso de valores más recientes (anteriores a k) o valores de la iteración anterior (mayores que k)
+            for j = 1:n
+                if j < k
+                    suma = suma + A(k, j) * sol(i, j);  % Uso del valor más reciente
+                elseif j > k
+                    suma = suma + A(k, j) * sol(i - 1, j);  % Uso del valor de la iteración anterior
+                end
+            end
+            sol(i, k) = (b(k) - suma) / A(k, k);
         end
-        sol(k)=(b(k)-suma)/A(k,k);
-       
+        error(i) = norm(sol(i, :) - sol(i - 1, :), 4);
     end
-end
-
-
-
-A=input('Ingresa la matriz de coeficiente del sistema entre []:');
-b=input('Ingresa el vector de términos independientes entre []:');
-x=input('Ingresa el vector inicial entre []:');
-ep=input('Ingresa el epsilon para el criterio de convergencia:');
-Nmax=input('Ingresa el número máximo de iteraciones:');
-b=b';
-x=x';
-n=length(x);
-k=1;
-while k<=Nmax
-    v=x;
-    for i=1:1:n
-        suma=A(i,1:i-1)*x(1:i-1)+A(i,i+1:n)*x(i+1:n);
-        x(i)=(b(i)-suma)/A(i,i);
-    end 
-    norma=norm(v-x);
-    if norma<=ep
-        fprintf('\n   El método converge \n')
-        fprintf('\n La solución en la iteracion: %4.0f  es: \n',k)
-        for i=1:1:n 
-            fprintf('      x(%1i)=%6.8f\n',i,x(i))
-        end
-        fprintf('      Norma=%8.6e\n',norma)
-        centinela=2;
-        break
-    else
-        fprintf('\nPara la iteración: %4.0f\n',k)
-        for i=1:1:n
-            fprintf('       x(%1i)=%6.8f\n',i,x(i))
-        end
-        fprintf('       Norma =%8.6e\n',norma)
-        centinela=1;
-    end
-    k=k+1;
+    i = i - 1;
 end

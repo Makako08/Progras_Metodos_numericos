@@ -1,20 +1,15 @@
-%n = tamaño de la matriz
+function[U, y]=elim_gauss(A, b)
 
-%Función de eliminación gaussiana
-function[U] = elim_gauss(A)
-    %Obtengo el tamaño de la matriz de entrada
-    [n, m] = size(A);
-    U = A;
-
-    %Ciclo para iterar por toda la matriz
-    for k =1:n-1
-        %Recorro filas
-        for i=k+1:n
-            %Recorro columnas de derecha a izquierda para evitar problemas
-            %de sustiitución de valores
-            for j=n:-1:k
-               U(i,j) = U(i,j)-(U(i,k)/U(k,k))*U(k,j);
-            end 
+[n,m] = size(A);
+U=A;
+y = b;
+for k=1:n-1
+    for i=k+1:n
+        factor = U(i,k) / U(k,k);
+        for j=n:-1:k
+            U(i,j) = U(i,j) - factor * U(k,j);
         end
+        y(i) = y(i) - factor * y(k); % Actualizar el vector b
     end
+end
 end
