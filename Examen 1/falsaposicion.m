@@ -28,8 +28,8 @@ for n=1:maxit
         fxl=fxr;
     end
     if n>1
-        error=abs(xr(n)-xr(n-1));
-        if error < es
+        error(n)=abs(xr(n)-xr(n-1));
+        if error(n) < es
             break
         end
     end
