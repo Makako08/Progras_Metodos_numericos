@@ -1,4 +1,4 @@
-function [L, U, perm] = factorizacionLU(A)
+function [L, U] = factorizacionLU(A)
     [m, n] = size(A);
     if m ~= n
         error('La matriz debe ser cuadrada para la factorización LU.');
