@@ -8,6 +8,21 @@ function [X, error, iter] = gaussseidel(A, b, Tol, iterMax)
     if length(b) ~= m
         error('El tamaño del vector b debe coincidir con el número de filas de A.');
     end
+    
+    [m, n] = size(A);
+    esDominante = true;
+
+    for i = 1:m
+        diagonal = abs(A(i, i));
+        suma = sum(abs(A(i, :))) - diagonal;
+
+        if diagonal <= suma
+            esDominante = false;
+            disp("La matriz no es dominante")
+            break;
+        end
+    end
+
 
     % Inicializar la matriz X con ceros
     X = zeros(m, 1);
@@ -42,17 +57,4 @@ function [X, error, iter] = gaussseidel(A, b, Tol, iterMax)
     end
 end
 
-function esDominante = esDiagonalDominante(A)
-    [m, n] = size(A);
-    esDominante = true;
 
-    for i = 1:m
-        diagonal = abs(A(i, i));
-        suma = sum(abs(A(i, :))) - diagonal;
-
-        if diagonal <= suma
-            esDominante = false;
-            break;
-        end
-    end
-end
