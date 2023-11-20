@@ -35,13 +35,13 @@ function examen2()
     lambda2 = k2 * dt / dx;
 
     % Se realiza el cálculo de velocidades utilizando Gauss-Seidel
-    Mr_GS = calcularVelocidadesGaussSeidel(X, T, v0, i, lambda1, lambda2)
+    Mr_GS = calcularVelocidadesGaussSeidel(X, T, v0, i, lambda1, lambda2);
     
     vb = zeros(size(X)); % o cualquier valor inicial que desees
     
     % Se realiza el cálculo de velocidades utilizando Factorización LU
     Mr_LU = calcularVelocidadesLU(X, T, v0, i, lambda1, lambda2, vb);
-    
+
     % Se grafican los resultados
     graficarResultados(X, Mr_GS, T, 'Gauss-Seidel');
     graficarResultados(X, Mr_LU, T, 'Factorización LU');
@@ -82,43 +82,55 @@ function Mr = calcularVelocidadesLU(X, T, v0, i, lambda1, lambda2, vb)
     Mr = zeros(length(T), length(X));
     Mr(1, end) = v0; % Condición inicial
 
-    for i_tiempo = 2:length(T)
-        if i <= i_tiempo
-            lambda = lambda2;
-        else
-            lambda = lambda1;
-        end
+    % Cálculo de velocidades utilizando Factorización LU
+    M = matriz(lambda1, length(X));
+    L = tril(M, -1) + eye(length(X));
+    U = triu(M);
 
-        [L, U] = factLU(matriz(lambda1, lambda2, length(X), i));        
-        % Corregir la llamada a la función vector eliminando el argumento vb
-        b_anterior = vector(lambda, Mr(i_tiempo - 1, :), matriz(lambda1, lambda2, length(X), i), vb);
-        
-        y = sust_adelante(L, b_anterior');
-        x = sust_atras(U, y);
+    for i_tiempo = 2:length(T)
+        b_anterior = vector(lambda1, Mr(i_tiempo - 1, :), M, vb);
+        y = sustitucionHaciaAdelante(L, b_anterior');
+        x = sustitucionHaciaAtras(U, y);
         Mr(i_tiempo, :) = x';
     end
 end
 
+function graficarResultados(X, Mr, T, metodo)
+    % Crear animación
+    figure;
+    hLine = plot(nan);
+    axis([0 max(X) 0 max(X)]);
+    set(hLine, 'YData', X);
+    xlabel('Velocidad del fluído');
+    ylabel('Posición (distancia entre placas)');
 
-function M = matriz(lambda1, lambda2, nx, i)
+    for i = 1:length(Mr)
+        r = Mr(i, :);
+
+        ylim = get(gca, 'ylim');
+        hold on
+        plot([ylim(1) ylim(2)], [0 0], 'k')
+
+        tiempo = T(i);
+        str = ['Gráfico: ' metodo ', Tiempo: ' num2str(tiempo)];
+        title(str);
+
+        set(hLine, 'XData', r);
+        drawnow
+        pause(0.05)
+    end
+end
+
+function M = matriz(lambda, nx)
     % Función para generar la matriz
     M = zeros(nx, nx);
-    
-    for j = 1:nx
-        if j < i
-            M(j, j) = 1 + 2 * lambda1;
-        elseif j == i
-            M(j, j) = 1 + lambda1 / lambda2;
-        else
-            M(j, j) = 1 + 2 * lambda2;
+    for i = 1:nx
+        M(i, i) = 1 + 2 * lambda;
+        if i > 1
+            M(i, i - 1) = -lambda;
         end
-        
-        if j > 1
-            M(j, j - 1) = -lambda1 * (j < i) - lambda2 * (j >= i);
-        end
-        
-        if j < nx
-            M(j, j + 1) = -lambda1 * (j < i) - lambda2 * (j >= i);
+        if i < nx
+            M(i, i + 1) = -lambda;
         end
     end
 end
@@ -160,72 +172,4 @@ function x = sustitucionHaciaAtras(U, y)
         x(i) = (y(i) - U(i, i + 1:n) * x(i + 1:n)) / U(i, i);
     end
     
-end
-
-function graficarResultados(X, Mr, T, metodo)
-    % Crear animación
-    figure;
-    hLine = plot(nan);
-    axis([0 max(X) 0 max(X)]);
-    set(hLine, 'YData', X);
-    xlabel('Velocidad del fluído');
-    ylabel('Posición (distancia entre placas)');
-
-    for i = 1:length(Mr)
-        r = Mr(i, :);
-
-        ylim = get(gca, 'ylim');
-        hold on
-        plot([ylim(1) ylim(2)], [0 0], 'k')
-
-        tiempo = T(i);
-        str = ['Gráfico: ' metodo ', Tiempo: ' num2str(tiempo)];
-        title(str);
-
-        set(hLine, 'XData', r);
-        drawnow
-        pause(0.05)
-    end
-end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [L, U] = factLU(A)
-    [n, m] = size(A);
-    L = eye(n);
-    U = A;
-
-    for k = 1:n-1
-        for i = k+1:n
-            L(i, k) = U(i, k) / U(k, k);
-            for j = n:-1:k
-                U(i, j) = U(i, j) - ((U(i, k) / U(k, k)) * U(k, j));
-            end
-        end
-    end
-end
-
-function sol = sust_adelante(A, b)
-    [n, m] = size(A);
-    sol(1) = b(1) / A(1, 1);
-
-    for k = 2:n
-        suma = 0;
-        for j = 1:k-1
-            suma = suma + A(k, j) * sol(j);
-        end
-        sol(k) = (b(k) - suma) / A(k, k);
-    end
-end
-
-function sol = sust_atras(A, b)
-    [n, m] = size(A);
-    sol(n) = b(n) / A(n, n);
-
-    for k = n-1:-1:1
-        suma = 0;
-        for j = k+1:n
-            suma = suma + A(k, j) * sol(j);
-        end
-        sol(k) = (b(k) - suma) / A(k, k);
-    end
 end
