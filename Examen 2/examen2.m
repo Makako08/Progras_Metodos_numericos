@@ -4,7 +4,7 @@ function examen2()
     k2 = 0.033; %input('Ingrese el valor de la viscocidad dinámica de la segunda sustancia (k2): ');
     x = 10; %input('Ingrese el valor de la distancia entre láminas (x): ');
     n = 20; %input('Ingrese el número de intervalos deseados (n): ');
-    t = 1000; %input('Ingrese el tiempo total que se desea calcular (t): ');
+    t = 100; %input('Ingrese el tiempo total que se desea calcular (t): ');
     dt = 5; %input('Ingrese el tamaño del intervalo de tiempo (dt): ');
     v0 = 9; %input('Ingrese la velocidad inicial de la placa superior: ');
     i = 6; %input('Ingrese la distancia a la cuál se encuentra la interfaz entre sustancias (i): ');
@@ -35,7 +35,7 @@ function examen2()
     lambda2 = k2 * dt / dx;
 
     % Se realiza el cálculo de velocidades utilizando Gauss-Seidel
-    Mr_GS = calcularVelocidadesGaussSeidel(X, T, v0, i, lambda1, lambda2)
+    Mr_GS = calcularVelocidadesGaussSeidel(X, T, v0, i, lambda1, lambda2);
     
     vb = zeros(size(X)); % o cualquier valor inicial que desees
     
@@ -51,6 +51,7 @@ function Mr = calcularVelocidadesGaussSeidel(X, T, v0, i, lambda1, lambda2)
     % Inicialización de la matriz de resultados
     Mr = zeros(length(T), length(X));
     Mr(1, end) = v0; % Condición inicial
+    X(2)
 
     % Cálculo de velocidades utilizando Gauss-Seidel
     for i_tiempo = 2:length(T)
@@ -83,19 +84,21 @@ function Mr = calcularVelocidadesLU(X, T, v0, i, lambda1, lambda2, vb)
     Mr(1, end) = v0; % Condición inicial
 
     for i_tiempo = 2:length(T)
-        if i <= i_tiempo
-            lambda = lambda2;
-        else
-            lambda = lambda1;
-        end
+        for i_longitud = 1:length(X)
+            if i <= i_longitud
+                lambda = lambda2;
+            else
+                lambda = lambda1;
+            end
 
-        [L, U] = factLU(matriz(lambda1, lambda2, length(X), i));        
-        % Corregir la llamada a la función vector eliminando el argumento vb
-        b_anterior = vector(lambda, Mr(i_tiempo - 1, :), matriz(lambda1, lambda2, length(X), i), vb);
-        
-        y = sust_adelante(L, b_anterior');
-        x = sust_atras(U, y);
-        Mr(i_tiempo, :) = x';
+            [L, U] = factLU(matriz(lambda1, lambda2, length(X), i));        
+            % Corregir la llamada a la función vector eliminando el argumento vb
+            b_anterior = vector(lambda, Mr(i_tiempo - 1, :), matriz(lambda1, lambda2, length(X), i), vb);
+
+            y = sust_adelante(L, b_anterior');
+            x = sust_atras(U, y);
+            Mr(i_tiempo, :) = x';
+        end
     end
 end
 
